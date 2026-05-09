@@ -1,0 +1,21 @@
+{
+  "name": "Project Acecent",
+  "short_name": "Acecent",
+  "description": "Five cards. One shot. How high can you go?",
+  "start_url": "/acecent/",
+  "display": "standalone",
+  "background_color": "#0a0a1a",
+  "theme_color": "#f5c518",
+  "icons": [
+    {
+      "src": "/acecent/favicon/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/acecent/favicon/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
