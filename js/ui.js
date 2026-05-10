@@ -36,7 +36,7 @@ function buildLightGS(gameState) {
     burnedCards: gameState.burnedCards,
     handHasPair: Object.values(rankCounts).some(v => v >= 2),
     heldSuitCount: (suit) => heldSuitCounts[suit] || 0,
-    burnedSuitCount: (suit) => gameState.burnedCards.filter(c => c.suit === suit).length, //ADD THIS
+    burnedSuitCount: (suit) => (gameState.burnedCards || []).filter(c => c.suit === suit).length,
     rng: gameState.rng || null,
   };
 }

@@ -1,7 +1,7 @@
 // config.js — Project Acecent
 // Version and readme content live here
 
-const VERSION = '0.6.7-alpha';
+const VERSION = '0.6.8-alpha';
 
 const README = {
   version: VERSION,
@@ -158,6 +158,15 @@ DIAMOND BURN VALUE: All Diamond cards burn for half their face value. They are d
       id: 'patchnotes',
       title: '📋 Patch Notes',
       patches: [
+        {
+          version: '0.6.8-alpha',
+          date: 'May 2026',
+          notes: [
+            'Fixed critical render crash — gs.burnedSuitCount was missing from buildLightGS in ui.js',
+            'K♦️ condition check (zero diamonds burned) now works correctly during hand rendering',
+            'Render loop no longer crashes when burned cards are present',
+          ]
+        },
         {
           version: '0.6.7-alpha',
           date: 'May 2026',
