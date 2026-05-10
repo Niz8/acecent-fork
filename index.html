@@ -9,71 +9,143 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/acecent/favicon/favicon-16x16.png">
   <link rel="manifest" href="/acecent/favicon/site.webmanifest">
   <meta name="theme-color" content="#f5c518">
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      height: 100%;
-      background: #0a0a1a;
-      color: #e8e8f0;
-      font-family: 'Courier New', Courier, monospace;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-    }
-    .container { padding: 2rem; max-width: 400px; }
-    .rocket {
-      font-size: 4rem;
-      animation: float 3s ease-in-out infinite;
-      display: block;
-      margin-bottom: 1.5rem;
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-12px); }
-    }
-    h1 {
-      font-size: 1.8rem;
-      color: #f5c518;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      margin-bottom: 0.5rem;
-    }
-    .subtitle {
-      font-size: 0.85rem;
-      color: #6666aa;
-      letter-spacing: 0.08em;
-      margin-bottom: 2rem;
-    }
-    .status {
-      font-size: 0.8rem;
-      color: #8888cc;
-      line-height: 1.8;
-      border: 1px solid #1a1a3a;
-      border-radius: 6px;
-      padding: 1rem 1.25rem;
-      background: #0d0d20;
-    }
-    .status span { color: #f5c518; }
-    .footer {
-      margin-top: 2rem;
-      font-size: 0.62rem;
-      color: #2a2a4a;
-      letter-spacing: 0.1em;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="container">
-    <span class="rocket">🚀</span>
-    <h1>Project Acecent</h1>
-    <p class="subtitle">Five cards. One shot. How high can you go?</p>
-    <div class="status">
-      <span>🔧 Under Maintenance</span><br>
-      We are fixing a bug and will be back shortly.<br>
-      Check back soon for launch!
-    </div>
-    <p class="footer">v0.6.7-alpha · vibe coded · use at your own risk</p>
-  </div>
+  <button id="floating-help-btn" class="floating-help-btn" title="How to Play">ℹ️</button>
+  <div id="app"></div>
+  <script type="module">
+    import { GameState, PHASES } from './js/game.js';
+    import { renderNameEntry, renderHand, renderLaunchSequence, playRocketAnimation } from './js/ui.js';
+    import { showReadme, shouldShow, isVersionBump } from './js/readme.js';
+    import { initFirebase, submitScore } from './js/firebase.js';
+    import { renderLeaderboard } from './js/leaderboard.js';
+
+    initFirebase();
+
+    // Version mismatch check — prompt cache refresh
+    const LS_LIVE_VERSION = 'acecent_live_version';
+    import('./js/config.js').then(({ VERSION }) => {
+      const cachedVersion = localStorage.getItem(LS_LIVE_VERSION);
+      if (cachedVersion && cachedVersion !== VERSION) {
+        const banner = document.createElement('div');
+        banner.className = 'update-banner';
+        banner.innerHTML = `
+          🚀 New version available (v${VERSION})
+          <button class="update-btn" id="update-btn">Refresh now</button>
+        `;
+        document.body.prepend(banner);
+        document.getElementById('update-btn').addEventListener('click', () => {
+          localStorage.setItem(LS_LIVE_VERSION, VERSION);
+          window.location.reload(true);
+        });
+      } else {
+        localStorage.setItem(LS_LIVE_VERSION, VERSION);
+      }
+    });
+
+    // Floating help button — always accessible
+    document.getElementById('floating-help-btn').addEventListener('click', () => showReadme(false));
+
+    const app = document.getElementById('app');
+    const gs = new GameState();
+
+    function render() {
+      if (gs.phase === PHASES.NAME_ENTRY) {
+        // Check if already played today
+        const existing = gs.loadTodayResult();
+        if (existing) {
+          showAlreadyPlayed(existing);
+          return;
+        }
+        renderNameEntry(app, gs, () => {
+          gs.startGame();
+          render();
+        });
+      } else if (gs.phase === PHASES.HAND) {
+        renderHand(app, gs,
+          () => { gs.doRedraw(); render(); },
+          () => { gs.doLaunch(); }
+        );
+      }
+    }
+
+    function showAlreadyPlayed(result) {
+      app.innerHTML = `
+        <div class="screen already-played-screen">
+          <div class="title-block">
+            <div class="title-emoji">🚀</div>
+            <h1 class="game-title">Project Acecent</h1>
+          </div>
+          <div class="already-card">
+            <p class="already-label">TODAY'S FLIGHT</p>
+            <div class="result-tier-emoji">${result.tier.emoji}</div>
+            <div class="result-tier-name">${result.tier.name}</div>
+            <div class="result-altitude">${result.altitude.toLocaleString()} ft</div>
+            <div class="result-pilot">👤 ${result.playerName}</div>
+          </div>
+          <button id="share-again-btn" class="btn-primary" style="margin-top:2rem">
+            📋 Copy Share Card
+          </button>
+          <button id="leaderboard-again-btn" class="btn-secondary">
+            📡 View Leaderboard
+          </button>
+          <div id="share-confirm-2" class="share-confirm" style="display:none">✅ Copied!</div>
+          <p class="come-back">Come back tomorrow for a new mission! 🌙</p>
+          <div class="scoreboard-notice">📡 Daily Leaderboard — Live</div>
+        </div>
+      `;
+
+      import('./js/share.js').then(({ copyShareCard }) => {
+        document.getElementById('share-again-btn').addEventListener('click', async () => {
+          const { success } = await copyShareCard(result);
+          const el = document.getElementById('share-confirm-2');
+          el.style.display = 'block';
+          el.textContent = success ? '✅ Copied!' : '📋 Copy failed';
+          setTimeout(() => { el.style.display = 'none'; }, 2000);
+        });
+      });
+
+      document.getElementById('leaderboard-again-btn').addEventListener('click', () => {
+        renderLeaderboard(app, result.playerName, result.altitude, () => showAlreadyPlayed(result));
+      });
+    }
+
+    // Listen for launch complete
+    gs.on('launchComplete', (result) => {
+      submitScore(gs.playerName, result.altitude, result.tier.name);
+
+      playRocketAnimation(app, () => {
+        const showResult = () => renderLaunchSequence(app, result, gs, () => {
+          renderLeaderboard(app, gs.playerName, result.altitude, () => showResult());
+        });
+        showResult();
+      });
+    });
+
+    // Listen for redraw bonuses
+    gs.on('redrawBonus', ({ message }) => {
+      showToast(message);
+    });
+
+    function showToast(msg) {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.classList.add('toast-visible'), 10);
+      setTimeout(() => {
+        toast.classList.remove('toast-visible');
+        setTimeout(() => document.body.removeChild(toast), 400);
+      }, 2500);
+    }
+
+    render();
+
+    // Show readme on first load or version bump
+    if (shouldShow()) {
+      setTimeout(() => showReadme(isVersionBump()), 400);
+    }
+  </script>
 </body>
 </html>
