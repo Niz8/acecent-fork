@@ -25,9 +25,6 @@ function getTankSize(heldCards) {
   let size = BASE_TANK_SIZE;
   for (const card of heldCards) {
     if (card.holdEffect) {
-      // We peek at the card's tank contribution via a lightweight check
-      // tankSlots is returned by holdEffect.fn but we need it before launch
-      // So we hardcode tank-contributing card IDs here
       if (TANK_SLOT_CARDS[card.id]) {
         size += TANK_SLOT_CARDS[card.id];
       }
@@ -55,12 +52,14 @@ function buildGameStateContext(heldCards, burnedCards, rng) {
     rankCounts[card.rank] = (rankCounts[card.rank] || 0) + 1;
   }
   const handHasPair = Object.values(rankCounts).some(v => v >= 2);
+  const tankSize = getTankSize(heldCards);
 
   return {
     heldCards,
     burnedCards,
     rng,
     handHasPair,
+    _tankSize: tankSize,
     heldSuitCount: (suit) => heldSuitCounts[suit] || 0,
     burnedSuitCount: (suit) => burnedCards.filter(c => c.suit === suit).length,
   };
@@ -107,29 +106,56 @@ function calculateFuel(keptBurnedCards, heldCards, log) {
 }
 
 // Poker hand detection on held hand
+// Jokers are wild for flush detection only — not straights
 function detectPokerHand(heldCards) {
-  const ranks = heldCards.map(c => c.rank);
-  const suits = heldCards.map(c => c.suit);
+  const nonJokers = heldCards.filter(c => c.suit !== 'joker');
+  const jokerCount = heldCards.length - nonJokers.length;
+
+  const ranks = nonJokers.map(c => c.rank);
+  const suits = nonJokers.map(c => c.suit);
 
   const rankOrder = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
   const rankCounts = {};
   for (const r of ranks) rankCounts[r] = (rankCounts[r] || 0) + 1;
   const counts = Object.values(rankCounts).sort((a, b) => b - a);
 
-  const isFlush = suits.every(s => s === suits[0]) && heldCards.length === 5;
+  // Flush: jokers are wild — all non-joker cards share a suit (or hand is all jokers)
+  const isFlush = heldCards.length === 5 && (
+    nonJokers.length === 0 ||
+    suits.every(s => s === suits[0])
+  );
+
+  // Straight: jokers not wild for straights
   const rankIndices = ranks.map(r => rankOrder.indexOf(r)).sort((a, b) => a - b);
   const isStraight = heldCards.length === 5 &&
+    jokerCount === 0 &&
     rankIndices.every((v, i) => i === 0 || v === rankIndices[i - 1] + 1) &&
     new Set(ranks).size === 5;
 
-  if (isFlush && isStraight) return { name: 'Straight Flush', emoji: '🌟', bonus: 400000 };
-  if (counts[0] === 4) return { name: 'Four of a Kind', emoji: '💫', bonus: 200000 };
-  if (counts[0] === 3 && counts[1] === 2) return { name: 'Full House', emoji: '🏠', bonus: 80000 };
-  if (isFlush) return { name: 'Flush', emoji: '♻️', bonus: 150000 };
+  // Straight flush requires both — jokers are not wild for either component here
+  // (a joker-assisted flush cannot also be a straight flush)
+  const isStraightFlush = isFlush && isStraight && jokerCount === 0;
+
+  // Build effective rank counts including jokers for pair/trips/quads
+  // Jokers act as the best possible rank match
+  const allCounts = jokerCount > 0
+    ? (() => {
+        const c = [...counts];
+        if (c.length === 0) c.push(0);
+        c[0] += jokerCount;
+        return c.sort((a, b) => b - a);
+      })()
+    : counts;
+
+  if (isStraightFlush) return { name: 'Straight Flush', emoji: '🌟', bonus: 400000 };
+  if (allCounts[0] === 4) return { name: 'Four of a Kind', emoji: '💫', bonus: 200000 };
+  if (allCounts[0] === 3 && (allCounts[1] === 2 || jokerCount > 0 && counts[0] === 2 && counts[1] === 2))
+    return { name: 'Full House', emoji: '🏠', bonus: 80000 };
+  if (isFlush) return { name: 'Flush', emoji: '♻️', bonus: 150000, jokerAssisted: jokerCount > 0 };
   if (isStraight) return { name: 'Straight', emoji: '📈', bonus: 100000 };
-  if (counts[0] === 3) return { name: 'Three of a Kind', emoji: '🎯', bonus: 50000 };
-  if (counts[0] === 2 && counts[1] === 2) return { name: 'Two Pair', emoji: '👯', bonus: 25000 };
-  if (counts[0] === 2) return { name: 'One Pair', emoji: '✌️', bonus: 10000 };
+  if (allCounts[0] === 3) return { name: 'Three of a Kind', emoji: '🎯', bonus: 50000 };
+  if (allCounts[0] === 2 && allCounts[1] === 2) return { name: 'Two Pair', emoji: '👯', bonus: 25000 };
+  if (allCounts[0] === 2) return { name: 'One Pair', emoji: '✌️', bonus: 10000 };
   return null;
 }
 
@@ -173,7 +199,8 @@ function calculateLaunch(heldCards, burnedCards, rng) {
   let pokerBonus = 0;
   if (pokerHand) {
     pokerBonus = pokerHand.bonus;
-    fullLog.push(`${pokerHand.emoji} ${pokerHand.name.toUpperCase()}! +${pokerBonus.toLocaleString()} ft`);
+    const jokerNote = pokerHand.jokerAssisted ? ' (Joker wild)' : '';
+    fullLog.push(`${pokerHand.emoji} ${pokerHand.name.toUpperCase()}!${jokerNote} +${pokerBonus.toLocaleString()} ft`);
   }
 
   // 5. Held card effects

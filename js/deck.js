@@ -332,6 +332,52 @@ const CARD_EFFECTS = {
     }
   },
 
+  '9_diamonds': {
+    emoji: '🔭',
+    holdEffect: {
+      desc: '✖️1.3x altitude if your fuel tank has any empty slots at launch',
+      emoji: '✖️',
+      condition: (gs) => gs.burnedCards.length < gs._tankSize,
+      fn: (gs) => {
+        const tankSize = gs._tankSize;
+        const hasEmpty = gs.burnedCards.length < tankSize;
+        return hasEmpty
+          ? { altitudeMult: 1.3, message: '🔭 9 of Diamonds: Calculated restraint! Tank not full — ✖️1.3x altitude' }
+          : { message: '🔭 9 of Diamonds: Tank full — no bonus' };
+      }
+    }
+  },
+
+  '8_diamonds': {
+    emoji: '⚖️',
+    holdEffect: {
+      desc: '🚀 +25,000 ft if your fuel tank has any empty slots at launch',
+      emoji: '🚀',
+      condition: (gs) => gs.burnedCards.length < gs._tankSize,
+      fn: (gs) => {
+        const hasEmpty = gs.burnedCards.length < gs._tankSize;
+        return hasEmpty
+          ? { altitudeFlat: 25000, message: '⚖️ 8 of Diamonds: Efficient burn! Tank not full — +25,000 ft' }
+          : { message: '⚖️ 8 of Diamonds: Tank full — no bonus' };
+      }
+    }
+  },
+
+  '7_diamonds': {
+    emoji: '🧪',
+    holdEffect: {
+      desc: '🚀 +15,000 ft if your fuel tank has any empty slots at launch',
+      emoji: '🚀',
+      condition: (gs) => gs.burnedCards.length < gs._tankSize,
+      fn: (gs) => {
+        const hasEmpty = gs.burnedCards.length < gs._tankSize;
+        return hasEmpty
+          ? { altitudeFlat: 15000, message: '🧪 7 of Diamonds: Lean fuel mix! Tank not full — +15,000 ft' }
+          : { message: '🧪 7 of Diamonds: Tank full — no bonus' };
+      }
+    }
+  },
+
   '3_diamonds': {
     emoji: '💎',
     holdEffect: {
