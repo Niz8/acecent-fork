@@ -1439,3 +1439,57 @@ html, body {
   color: #aaaacc;
   white-space: nowrap;
 }
+
+/* =====================
+   HALL OF FAME
+   ===================== */
+
+.hall-of-fame {
+  width: 100%;
+  border-top: 1px solid #1a1a3a;
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.hof-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #f5c518;
+  font-family: 'Courier New', Courier, monospace;
+  text-transform: uppercase;
+  margin-bottom: 0.1rem;
+}
+
+.hof-entry {
+  border-color: #3a3010;
+  background: #0e0e1a;
+}
+
+.hof-disclaimer {
+  font-size: 0.6rem;
+  color: #2a2a4a;
+  letter-spacing: 0.08em;
+  font-family: 'Courier New', Courier, monospace;
+  margin-top: 0.15rem;
+}
+
+/* =====================
+   DAILY QUOTE
+   ===================== */
+
+.leaderboard-quote {
+  width: 100%;
+  padding-top: 1.5rem;
+  margin-top: auto;
+  text-align: center;
+  font-size: 0.72rem;
+  font-style: italic;
+  color: #44446a;
+  letter-spacing: 0.03em;
+  line-height: 1.6;
+  font-family: 'Courier New', Courier, monospace;
+  padding-bottom: 1rem;
+}
