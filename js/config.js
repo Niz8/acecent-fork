@@ -1,7 +1,7 @@
 // config.js — Project Acecent
 // Version and readme content live here
 
-const VERSION = '0.7.0-alpha';
+const VERSION = '0.7.1-alpha';
 
 const README = {
   version: VERSION,
@@ -53,7 +53,7 @@ Strategy: decide early whether you are building a deep-burn deck (hold tank-expa
 
 The status bar shows your current best poker hand live as you redraw. Stop burning when you hit a strong hand — more burns expand your tank but may break your poker configuration.
 
-Jokers are wild for flush detection. Two Jokers and three Clubs counts as a Flush. Jokers are not wild for straights, and a Joker-assisted flush cannot become a Straight Flush.`
+Jokers are wild for flush detection. Two Jokers and three Clubs counts as a Flush. Jokers are not wild for straights yet — this is coming in a future update. A Joker-assisted flush cannot become a Straight Flush.`
     },
     {
       id: 'tiers',
@@ -109,16 +109,16 @@ Orbital requires near-perfect play. Most players land in Stratosphere or Mesosph
           theme: 'Engineering — synergy and pairs. All Diamonds burn for half value.',
           color: '#e8334a',
           cards: [
-            { card: 'A♦️', type: 'HOLD', desc: '+30,000 ft if you hold 3 of a kind OR 4 of the same suit' },
-            { card: 'K♦️', type: 'HOLD', desc: '✖️1.4x altitude — only if you burned zero Diamonds all game' },
-            { card: 'Q♦️', type: 'HOLD', desc: '✖️1.2x altitude if you hold a pair' },
-            { card: 'J♦️', type: 'HOLD', desc: '✖️1.15x altitude if you hold no Spades' },
-            { card: '10♦️', type: 'HOLD', desc: '+12,000 ft if you hold 3+ of the same suit' },
-            { card: '9♦️', type: 'HOLD', desc: '✖️1.3x altitude if your fuel tank has any empty slots at launch' },
-            { card: '8♦️', type: 'HOLD', desc: '+25,000 ft if your fuel tank has any empty slots at launch' },
-            { card: '7♦️', type: 'HOLD', desc: '+15,000 ft if your fuel tank has any empty slots at launch' },
-            { card: '3♦️', type: 'HOLD', desc: '+8,000 ft if you hold a pair' },
-            { card: '2♦️', type: 'HOLD', desc: '+5,000 ft if you hold a pair' },
+            { card: 'A♦️', type: 'HOLD', desc: '+30,000 ft if you hold 2+ other ♦️. Burns for half fuel value.' },
+            { card: 'K♦️', type: 'HOLD', desc: '✖️1.4x altitude — only if you burned zero ♦️ all game. Burns for half fuel value.' },
+            { card: 'Q♦️', type: 'HOLD', desc: '✖️1.2x altitude if you hold any other ♦️. Burns for half fuel value.' },
+            { card: 'J♦️', type: 'HOLD', desc: '✖️1.15x altitude if you hold no ♠️. Burns for half fuel value.' },
+            { card: '10♦️', type: 'HOLD', desc: '+12,000 ft if you hold 3+ of the same suit. Burns for half fuel value.' },
+            { card: '9♦️', type: 'HOLD', desc: '✖️1.3x altitude if your fuel tank has any empty slots at launch. Burns for half fuel value.' },
+            { card: '8♦️', type: 'HOLD', desc: '+25,000 ft if your fuel tank has any empty slots at launch. Burns for half fuel value.' },
+            { card: '7♦️', type: 'HOLD', desc: '+15,000 ft if your fuel tank has any empty slots at launch. Burns for half fuel value.' },
+            { card: '3♦️', type: 'HOLD', desc: '+8,000 ft if you hold any other ♦️. Burns for half fuel value.' },
+            { card: '2♦️', type: 'HOLD', desc: '+5,000 ft if you hold any other ♦️. Burns for half fuel value.' },
           ]
         },
         {
@@ -164,6 +164,20 @@ DIAMOND BURN VALUE: All Diamond cards burn for half their face value. They are d
       title: '📋 Patch Notes',
       patches: [
         {
+          version: '0.7.1-alpha',
+          date: 'May 2026',
+          notes: [
+            'A♦️ reworked: +30,000 ft if you hold 2+ other diamonds (was: 3 of a kind or 4 of same suit)',
+            'Q♦️ reworked: ✖️1.2x if you hold any other diamond (was: pair)',
+            '3♦️ reworked: +8,000 ft if you hold any other diamond (was: pair)',
+            '2♦️ reworked: +5,000 ft if you hold any other diamond (was: pair)',
+            'All diamond cards now show "Burns for half fuel value" in card detail',
+            'Jokers wild for straights coming in a future update',
+            'Dev bypass: scores submitted as acecent_dev are not posted to the leaderboard',
+            'Fixed: 7♦️/8♦️/9♦️ condition glows now work correctly during hand screen',
+          ]
+        },
+        {
           version: '0.7.0-alpha',
           date: 'May 2026',
           notes: [
@@ -175,6 +189,8 @@ DIAMOND BURN VALUE: All Diamond cards burn for half their face value. They are d
             '9♦️ new effect: ✖️1.3x altitude if fuel tank has any empty slots at launch',
             'Empty tank slot condition accounts for tank expansion from held face cards',
             'Fixed 10♦️ help screen description (was incorrect from v0.5.0)',
+            'Hall of fame added to leaderboard screen — all-time #1 score since May 2026',
+            'Daily rotating quote on leaderboard screen — one per day of the week, same for all players',
           ]
         },
         {

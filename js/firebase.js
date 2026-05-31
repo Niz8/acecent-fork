@@ -2,7 +2,7 @@
 // Daily leaderboard read/write via Firestore
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js';
-import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js';
+import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, limit, serverTimestamp, Timestamp } from 'https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js';
 import { getDailyDateString } from './deck.js';
 import { VERSION } from './config.js';
 
@@ -17,6 +17,9 @@ const firebaseConfig = {
 
 let db = null;
 
+// May 1 2026 — start of fuel tank era scores
+const HALL_OF_FAME_START = Timestamp.fromDate(new Date('2026-05-02T00:00:00Z'));
+
 function initFirebase() {
   try {
     const app = initializeApp(firebaseConfig);
@@ -27,9 +30,15 @@ function initFirebase() {
   }
 }
 
+const DEV_PLAYER_NAME = 'acecent_dev';
+
 // Submit score to Firestore
 // Returns { success, error }
 async function submitScore(playerName, altitude, tierName) {
+  if (playerName === DEV_PLAYER_NAME) {
+    console.log(`[DEV] Score not submitted — dev bypass active (${altitude} ft, ${tierName})`);
+    return { success: true };
+  }
   if (!db) return { success: false, error: 'No database connection' };
   try {
     const dateString = getDailyDateString();
@@ -69,6 +78,29 @@ async function fetchDailyLeaderboard(maxEntries = 10) {
   }
 }
 
+// Fetch all-time top scores since May 2 2026 (fuel tank era)
+// Returns { success, scores } — multiple entries if tied at the top
+async function fetchHallOfFame() {
+  if (!db) return { success: false, scores: [] };
+  try {
+    const q = query(
+      collection(db, 'scores'),
+      where('submittedAt', '>=', HALL_OF_FAME_START),
+      orderBy('altitude', 'desc'),
+      limit(20)
+    );
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) return { success: true, scores: [] };
+    const all = snapshot.docs.map(doc => doc.data());
+    const topAltitude = all[0].altitude;
+    const scores = all.filter(s => s.altitude === topAltitude);
+    return { success: true, scores };
+  } catch (e) {
+    console.warn('Hall of fame fetch failed:', e);
+    return { success: false, scores: [] };
+  }
+}
+
 // Get the player's rank on the leaderboard for today
 // Returns rank (1-based) or null if not found
 async function getPlayerRank(playerName, altitude) {
@@ -88,4 +120,4 @@ async function getPlayerRank(playerName, altitude) {
   }
 }
 
-export { initFirebase, submitScore, fetchDailyLeaderboard, getPlayerRank };
+export { initFirebase, submitScore, fetchDailyLeaderboard, fetchHallOfFame, getPlayerRank };

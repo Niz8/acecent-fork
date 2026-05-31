@@ -246,31 +246,14 @@ const CARD_EFFECTS = {
   'A_diamonds': {
     emoji: '💠',
     holdEffect: {
-      desc: '🚀 +30,000 ft if you hold 3 of a kind OR 4 of same suit',
+      desc: '🚀 +30,000 ft if you hold 2+ other ♦️',
       emoji: '🚀',
-      condition: (gs) => {
-        const rankCounts = {};
-        const suitCounts = {};
-        for (const c of gs.heldCards) {
-          rankCounts[c.rank] = (rankCounts[c.rank] || 0) + 1;
-          suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1;
-        }
-        return Object.values(rankCounts).some(v => v >= 3) || Object.values(suitCounts).some(v => v >= 4);
-      },
+      condition: (gs) => gs.heldCards.filter(c => c.suit === 'diamonds' && c.id !== 'A_diamonds').length >= 2,
       fn: (gs) => {
-        const rankCounts = {};
-        const suitCounts = {};
-        for (const c of gs.heldCards) {
-          rankCounts[c.rank] = (rankCounts[c.rank] || 0) + 1;
-          suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1;
-        }
-        const hasThreeOfKind = Object.values(rankCounts).some(v => v >= 3);
-        const hasFourSuit = Object.values(suitCounts).some(v => v >= 4);
-        if (hasThreeOfKind || hasFourSuit) {
-          const reason = hasThreeOfKind ? '3 of a kind' : '4 of same suit';
-          return { altitudeFlat: 30000, message: `💠 Ace of Diamonds: Perfect configuration (${reason})! +30,000 ft` };
-        }
-        return { message: '💠 Ace of Diamonds: Need 3 of a kind or 4 of same suit — no bonus' };
+        const otherDiamonds = gs.heldCards.filter(c => c.suit === 'diamonds' && c.id !== 'A_diamonds').length;
+        return otherDiamonds >= 2
+          ? { altitudeFlat: 30000, message: '💠 Ace of Diamonds: Diamond formation! +30,000 ft' }
+          : { message: '💠 Ace of Diamonds: Need 2+ other ♦️ — no bonus' };
       }
     }
   },
@@ -290,12 +273,15 @@ const CARD_EFFECTS = {
   'Q_diamonds': {
     emoji: '⚙️',
     holdEffect: {
-      desc: '✖️1.2x altitude if you hold a pair',
+      desc: '✖️1.2x altitude if you hold any other ♦️',
       emoji: '✖️',
-      condition: (gs) => gs.handHasPair,
-      fn: (gs) => gs.handHasPair
-        ? { altitudeMult: 1.2, message: '⚙️ Queen of Diamonds: Matched components! ✖️1.2x altitude' }
-        : { message: '⚙️ Queen of Diamonds: No pair — no bonus' }
+      condition: (gs) => gs.heldCards.some(c => c.suit === 'diamonds' && c.id !== 'Q_diamonds'),
+      fn: (gs) => {
+        const hasDiamond = gs.heldCards.some(c => c.suit === 'diamonds' && c.id !== 'Q_diamonds');
+        return hasDiamond
+          ? { altitudeMult: 1.2, message: '⚙️ Queen of Diamonds: Diamond sync! ✖️1.2x altitude' }
+          : { message: '⚙️ Queen of Diamonds: Need another ♦️ — no bonus' };
+      }
     }
   },
 
@@ -332,73 +318,33 @@ const CARD_EFFECTS = {
     }
   },
 
-  '9_diamonds': {
-    emoji: '🔭',
-    holdEffect: {
-      desc: '✖️1.3x altitude if your fuel tank has any empty slots at launch',
-      emoji: '✖️',
-      condition: (gs) => gs.burnedCards.length < gs._tankSize,
-      fn: (gs) => {
-        const tankSize = gs._tankSize;
-        const hasEmpty = gs.burnedCards.length < tankSize;
-        return hasEmpty
-          ? { altitudeMult: 1.3, message: '🔭 9 of Diamonds: Calculated restraint! Tank not full — ✖️1.3x altitude' }
-          : { message: '🔭 9 of Diamonds: Tank full — no bonus' };
-      }
-    }
-  },
-
-  '8_diamonds': {
-    emoji: '⚖️',
-    holdEffect: {
-      desc: '🚀 +25,000 ft if your fuel tank has any empty slots at launch',
-      emoji: '🚀',
-      condition: (gs) => gs.burnedCards.length < gs._tankSize,
-      fn: (gs) => {
-        const hasEmpty = gs.burnedCards.length < gs._tankSize;
-        return hasEmpty
-          ? { altitudeFlat: 25000, message: '⚖️ 8 of Diamonds: Efficient burn! Tank not full — +25,000 ft' }
-          : { message: '⚖️ 8 of Diamonds: Tank full — no bonus' };
-      }
-    }
-  },
-
-  '7_diamonds': {
-    emoji: '🧪',
-    holdEffect: {
-      desc: '🚀 +15,000 ft if your fuel tank has any empty slots at launch',
-      emoji: '🚀',
-      condition: (gs) => gs.burnedCards.length < gs._tankSize,
-      fn: (gs) => {
-        const hasEmpty = gs.burnedCards.length < gs._tankSize;
-        return hasEmpty
-          ? { altitudeFlat: 15000, message: '🧪 7 of Diamonds: Lean fuel mix! Tank not full — +15,000 ft' }
-          : { message: '🧪 7 of Diamonds: Tank full — no bonus' };
-      }
-    }
-  },
-
   '3_diamonds': {
     emoji: '💎',
     holdEffect: {
-      desc: '🚀 +8,000 ft if you hold a pair',
+      desc: '🚀 +8,000 ft if you hold any other ♦️',
       emoji: '🚀',
-      condition: (gs) => gs.handHasPair,
-      fn: (gs) => gs.handHasPair
-        ? { altitudeFlat: 8000, message: '💎 3 of Diamonds: Redundant systems! +8,000 ft' }
-        : { message: '💎 3 of Diamonds: No pair — no bonus' }
+      condition: (gs) => gs.heldCards.some(c => c.suit === 'diamonds' && c.id !== '3_diamonds'),
+      fn: (gs) => {
+        const hasDiamond = gs.heldCards.some(c => c.suit === 'diamonds' && c.id !== '3_diamonds');
+        return hasDiamond
+          ? { altitudeFlat: 8000, message: '💎 3 of Diamonds: Diamond resonance! +8,000 ft' }
+          : { message: '💎 3 of Diamonds: Need another ♦️ — no bonus' };
+      }
     }
   },
 
   '2_diamonds': {
     emoji: '💎',
     holdEffect: {
-      desc: '🚀 +5,000 ft if you hold a pair',
+      desc: '🚀 +5,000 ft if you hold any other ♦️',
       emoji: '🚀',
-      condition: (gs) => gs.handHasPair,
-      fn: (gs) => gs.handHasPair
-        ? { altitudeFlat: 5000, message: '💎 2 of Diamonds: Dual calibration! +5,000 ft' }
-        : { message: '💎 2 of Diamonds: No pair — no bonus' }
+      condition: (gs) => gs.heldCards.some(c => c.suit === 'diamonds' && c.id !== '2_diamonds'),
+      fn: (gs) => {
+        const hasDiamond = gs.heldCards.some(c => c.suit === 'diamonds' && c.id !== '2_diamonds');
+        return hasDiamond
+          ? { altitudeFlat: 5000, message: '💎 2 of Diamonds: Diamond calibration! +5,000 ft' }
+          : { message: '💎 2 of Diamonds: Need another ♦️ — no bonus' };
+      }
     }
   },
 

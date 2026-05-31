@@ -35,6 +35,7 @@ function buildLightGS(gameState) {
     heldCards: gameState.hand,
     burnedCards: gameState.burnedCards,
     handHasPair: Object.values(rankCounts).some(v => v >= 2),
+    _tankSize: getTankSize(gameState.hand),
     heldSuitCount: (suit) => heldSuitCounts[suit] || 0,
     burnedSuitCount: (suit) => (gameState.burnedCards || []).filter(c => c.suit === suit).length,
     rng: gameState.rng || null,
@@ -96,7 +97,7 @@ function renderDetailCard(card, gameState, isSelected, burnOrder = 0) {
     : '';
 
   const noEffect = !card.holdEffect && !card.burnEffect
-    ? `<div class="detail-no-effect">No special effect — solid fuel value</div>`
+    ? `<div class="detail-no-effect">${card.suit === 'diamonds' ? 'Burns for half fuel value' : 'No special effect — solid fuel value'}</div>`
     : '';
 
   const burnBadge = burnOrder > 0
