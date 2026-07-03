@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Acecent 🚀</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="/acecent/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/acecent/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/acecent/favicon/favicon-16x16.png">
+  <link rel="manifest" href="/acecent/favicon/site.webmanifest">
+  <meta name="theme-color" content="#b22234">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* 4th of July overlay styles — remove when reverting */
+
+    #fireworks-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* Tint the accent yellow to red/white/blue rotation */
+    .game-title,
+    .leaderboard-title,
+    .hof-title,
+    .readme-title {
+      background: linear-gradient(90deg, #b22234, #ffffff, #3c3b6e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Subtle star-spangled border on cards */
+    .card-chip {
+      border-color: #3c3b6e !important;
+    }
+    .card-chip.selected {
+      border-color: #b22234 !important;
+    }
+
+    /* 4th banner above the hand screen */
+    #jul4-banner {
+      width: 100%;
+      max-width: 600px;
+      text-align: center;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      color: #b22234;
+      padding: 0.4rem 0 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="fireworks-canvas"></canvas>
+  <div id="jul4-banner">🎆 HAPPY 4TH OF JULY 🎆</div>
+  <div id="app"></div>
+
+  <script type="module" src="js/config.js"></script>
+  <script type="module" src="js/main.js"></script>
+
+  <script>
+    // Fireworks — lightweight canvas, no dependencies
+    // Remove this entire script block when reverting
+    (function () {
+      const canvas = document.getElementById('fireworks-canvas');
+      const ctx = canvas.getContext('2d');
+
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      const COLORS = [
+        '#ff4444', '#ff6666', '#ffaaaa', // reds
+        '#ffffff', '#ddddff',             // whites
+        '#4444cc', '#6688ff', '#aabbff', // blues
+        '#f5c518',                        // gold accent
+      ];
+
+      const particles = [];
+      const rockets = [];
+
+      function randomColor() {
+        return COLORS[Math.floor(Math.random() * COLORS.length)];
+      }
+
+      function launchRocket() {
+        rockets.push({
+          x: canvas.width * (0.2 + Math.random() * 0.6),
+          y: canvas.height,
+          vy: -(8 + Math.random() * 6),
+          targetY: canvas.height * (0.1 + Math.random() * 0.4),
+          color: randomColor(),
+        });
+      }
+
+      function explode(x, y, color) {
+        const count = 60 + Math.floor(Math.random() * 40);
+        for (let i = 0; i < count; i++) {
+          const angle = (Math.PI * 2 * i) / count;
+          const speed = 1.5 + Math.random() * 3;
+          particles.push({
+            x, y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            alpha: 1,
+            color,
+            radius: 1.5 + Math.random() * 1.5,
+          });
+        }
+      }
+
+      let lastLaunch = 0;
+      function tick(ts) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Launch rockets periodically
+        if (ts - lastLaunch > 1200 + Math.random() * 800) {
+          launchRocket();
+          lastLaunch = ts;
+        }
+
+        // Update rockets
+        for (let i = rockets.length - 1; i >= 0; i--) {
+          const r = rockets[i];
+          r.y += r.vy;
+          ctx.beginPath();
+          ctx.arc(r.x, r.y, 2, 0, Math.PI * 2);
+          ctx.fillStyle = r.color;
+          ctx.fill();
+          if (r.y <= r.targetY) {
+            explode(r.x, r.y, r.color);
+            rockets.splice(i, 1);
+          }
+        }
+
+        // Update particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.06; // gravity
+          p.alpha -= 0.018;
+          if (p.alpha <= 0) { particles.splice(i, 1); continue; }
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = p.alpha;
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+
+        requestAnimationFrame(tick);
+      }
+
+      requestAnimationFrame(tick);
+    })();
+  </script>
+</body>
+</html>
