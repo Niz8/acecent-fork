@@ -1,7 +1,7 @@
 // config.js — Project Acecent
 // Version and readme content live here
 
-const VERSION = '0.7.1-alpha';
+const VERSION = '0.7.2-alpha';
 
 const README = {
   version: VERSION,
@@ -43,11 +43,11 @@ Strategy: decide early whether you are building a deep-burn deck (hold tank-expa
       content: `Your held hand at launch is evaluated for poker hands. Bonuses are flat altitude additions applied before multipliers — so they feed into your multiplier chain.
 
 ✌️ One Pair — +10,000 ft
-👯 Two Pair — +25,000 ft
-🎯 Three of a Kind — +50,000 ft
-📈 Straight (5 consecutive ranks) — +100,000 ft
-♻️ Flush (5 same suit) — +150,000 ft
-🏠 Full House — +80,000 ft
+👯 Two Pair — +40,000 ft
+🎯 Three of a Kind — +80,000 ft
+📈 Straight (5 consecutive ranks) — +150,000 ft
+♻️ Flush (5 same suit) — +200,000 ft
+🏠 Full House — +120,000 ft
 💫 Four of a Kind — +200,000 ft
 🌟 Straight Flush — +400,000 ft
 
@@ -78,10 +78,10 @@ Orbital requires near-perfect play. Most players land in Stratosphere or Mesosph
           theme: 'Thrust — raw power, spade combos, fuel multipliers',
           color: '#3a7bd5',
           cards: [
-            { card: 'A♠️', type: 'HOLD', desc: '✖️1.5x altitude if no pairs + ⛽ +1 tank slot' },
+            { card: 'A♠️', type: 'HOLD', desc: '✖️1.6x altitude if no pairs + ⛽ +1 tank slot' },
             { card: 'K♠️', type: 'HOLD', desc: '✖️2x spade fuel + ⛽ +1 tank slot' },
-            { card: 'Q♠️', type: 'HOLD', desc: '✖️1.3x if 3+ Spades held + ⛽ +1 tank slot' },
-            { card: 'J♠️', type: 'HOLD', desc: '✖️1.15x altitude + ⛽ +1 tank slot' },
+            { card: 'Q♠️', type: 'HOLD', desc: '✖️1.4x if 3+ Spades held + ⛽ +1 tank slot' },
+            { card: 'J♠️', type: 'HOLD', desc: '✖️1.25x altitude + ⛽ +1 tank slot' },
             { card: '10♠️', type: 'HOLD', desc: '✖️1.5x fuel from all burned Spades — stacks with King' },
             { card: '7♠️', type: 'HOLD', desc: '+5,000 ft if you hold any other Spade' },
             { card: '2♠️', type: 'BURN', desc: 'Burns for boosted fuel value' },
@@ -92,10 +92,10 @@ Orbital requires near-perfect play. Most players land in Stratosphere or Mesosph
           theme: 'Life Support — fuel tank expansion and crew synergy',
           color: '#e8334a',
           cards: [
-            { card: 'A♥️', type: 'HOLD', desc: '⛽ +2 tank slots + ✖️1.2x altitude' },
-            { card: 'K♥️', type: 'HOLD', desc: '⛽ +2 tank slots + ✖️1.15x altitude' },
+            { card: 'A♥️', type: 'HOLD', desc: '⛽ +2 tank slots + ✖️1.3x altitude' },
+            { card: 'K♥️', type: 'HOLD', desc: '⛽ +2 tank slots + ✖️1.25x altitude' },
             { card: 'Q♥️', type: 'HOLD', desc: '⛽ +1 tank slot + 🚀 +10,000 ft' },
-            { card: 'J♥️', type: 'HOLD', desc: '⛽ +1 tank slot + ✖️1.1x altitude' },
+            { card: 'J♥️', type: 'HOLD', desc: '⛽ +1 tank slot + ✖️1.2x altitude' },
             { card: '9♥️', type: 'HOLD', desc: '⛽ +1 tank slot + ✖️1.1x per Heart held' },
             { card: '6♥️', type: 'HOLD', desc: '⛽ +1 tank slot' },
             { card: '5♥️', type: 'HOLD', desc: '⛽ +1 tank slot' },
@@ -106,13 +106,13 @@ Orbital requires near-perfect play. Most players land in Stratosphere or Mesosph
         },
         {
           name: 'Diamonds ♦️',
-          theme: 'Engineering — synergy and pairs. All Diamonds burn for half value.',
+          theme: 'Engineering — synergy. All Diamonds burn for half value.',
           color: '#e8334a',
           cards: [
             { card: 'A♦️', type: 'HOLD', desc: '+30,000 ft if you hold 2+ other ♦️. Burns for half fuel value.' },
-            { card: 'K♦️', type: 'HOLD', desc: '✖️1.4x altitude — only if you burned zero ♦️ all game. Burns for half fuel value.' },
-            { card: 'Q♦️', type: 'HOLD', desc: '✖️1.2x altitude if you hold any other ♦️. Burns for half fuel value.' },
-            { card: 'J♦️', type: 'HOLD', desc: '✖️1.15x altitude if you hold no ♠️. Burns for half fuel value.' },
+            { card: 'K♦️', type: 'HOLD', desc: '✖️1.5x altitude — only if you burned zero ♦️ all game. Burns for half fuel value.' },
+            { card: 'Q♦️', type: 'HOLD', desc: '✖️1.3x altitude if you hold any other ♦️. Burns for half fuel value.' },
+            { card: 'J♦️', type: 'HOLD', desc: '✖️1.25x altitude if you hold no ♠️. Burns for half fuel value.' },
             { card: '10♦️', type: 'HOLD', desc: '+12,000 ft if you hold 3+ of the same suit. Burns for half fuel value.' },
             { card: '9♦️', type: 'HOLD', desc: '✖️1.3x altitude if your fuel tank has any empty slots at launch. Burns for half fuel value.' },
             { card: '8♦️', type: 'HOLD', desc: '+25,000 ft if your fuel tank has any empty slots at launch. Burns for half fuel value.' },
@@ -127,9 +127,9 @@ Orbital requires near-perfect play. Most players land in Stratosphere or Mesosph
           color: '#3a7bd5',
           cards: [
             { card: 'A♣️', type: 'BURN', desc: '+2 redraws when burned' },
-            { card: 'K♣️', type: 'HOLD', desc: '✖️1.2x final altitude' },
+            { card: 'K♣️', type: 'HOLD', desc: '✖️1.3x final altitude' },
             { card: 'Q♣️', type: 'BURN', desc: 'Reveals one additional next card suit for the rest of the game' },
-            { card: 'J♣️', type: 'HOLD', desc: '✖️1.25x final altitude' },
+            { card: 'J♣️', type: 'HOLD', desc: '✖️1.35x final altitude' },
             { card: '8♣️', type: 'HOLD', desc: '✖️1.15x altitude per 2 Clubs held' },
             { card: '5♣️', type: 'BURN', desc: '+1 redraw when burned' },
             { card: '4♣️', type: 'BURN', desc: '+1 redraw when burned' },
@@ -142,8 +142,8 @@ Orbital requires near-perfect play. Most players land in Stratosphere or Mesosph
           theme: 'Wild — high risk, high reward',
           color: '#cc88ff',
           cards: [
-            { card: 'Red Joker 🃏', type: 'HOLD', desc: 'ALL SYSTEMS GO — +50,000 ft flat' },
-            { card: 'Black Joker 🃏', type: 'HOLD', desc: 'ANOMALY — random effect ranging from 2x altitude to a significant penalty. Risky.' },
+            { card: 'Red Joker 🃏', type: 'HOLD', desc: 'ALL SYSTEMS GO — +50,000 ft flat. Jokers are wild: they boost any existing pair, three of a kind, or four of a kind in your held hand.' },
+            { card: 'Black Joker 🃏', type: 'HOLD', desc: 'ANOMALY — random effect ranging from 2x altitude to a significant penalty. Risky. Also wild for pairs and higher rank combos.' },
           ]
         }
       ]
@@ -164,6 +164,14 @@ DIAMOND BURN VALUE: All Diamond cards burn for half their face value. They are d
       title: '📋 Patch Notes',
       patches: [
         {
+          version: '0.7.2-alpha',
+          date: 'Jul 2026',
+          notes: [
+            'Poker hand bonuses increased: Two Pair +40k, Three of a Kind +80k, Straight +150k, Flush +200k, Full House +120k',
+            'All face card multipliers increased: A♠️ 1.6x, Q♠️ 1.4x, J♠️ 1.25x, A♥️ 1.3x, K♥️ 1.25x, J♥️ 1.2x, K♦️ 1.5x, Q♦️ 1.3x, J♦️ 1.25x, K♣️ 1.3x, J♣️ 1.35x',
+          ]
+        },
+        {
           version: '0.7.1-alpha',
           date: 'May 2026',
           notes: [
@@ -173,7 +181,6 @@ DIAMOND BURN VALUE: All Diamond cards burn for half their face value. They are d
             '2♦️ reworked: +5,000 ft if you hold any other diamond (was: pair)',
             'All diamond cards now show "Burns for half fuel value" in card detail',
             'Jokers wild for straights coming in a future update',
-            'Dev bypass: scores submitted as acecent_dev are not posted to the leaderboard',
             'Fixed: 7♦️/8♦️/9♦️ condition glows now work correctly during hand screen',
           ]
         },

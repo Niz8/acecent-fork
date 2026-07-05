@@ -68,12 +68,12 @@ const CARD_EFFECTS = {
   'A_spades': {
     emoji: '🚀',
     holdEffect: {
-      desc: '✖️1.5x altitude if no pairs + ⛽ +1 tank slot',
+      desc: '✖️1.6x altitude if no pairs + ⛽ +1 tank slot',
       emoji: '✖️',
       condition: (gs) => !gs.handHasPair,
       fn: (gs) => gs.handHasPair
         ? { tankSlots: 1, message: '🚀 Ace of Spades: pair detected, multiplier lost — but +1 tank slot' }
-        : { altitudeMult: 1.5, tankSlots: 1, message: '🚀 Ace of Spades: NO PAIRS — ✖️1.5x THRUST! +1 tank slot' }
+        : { altitudeMult: 1.6, tankSlots: 1, message: '🚀 Ace of Spades: NO PAIRS — ✖️1.6x THRUST! +1 tank slot' }
     }
   },
 
@@ -89,11 +89,11 @@ const CARD_EFFECTS = {
   'Q_spades': {
     emoji: '⚡',
     holdEffect: {
-      desc: '✖️1.3x if 3+ ♠️ held + ⛽ +1 tank slot',
+      desc: '✖️1.4x if 3+ ♠️ held + ⛽ +1 tank slot',
       emoji: '✖️',
       condition: (gs) => gs.heldSuitCount('spades') >= 3,
       fn: (gs) => gs.heldSuitCount('spades') >= 3
-        ? { altitudeMult: 1.3, tankSlots: 1, message: '⚡ Queen of Spades: Full Thrust Array! ✖️1.3x altitude + 1 tank slot' }
+        ? { altitudeMult: 1.4, tankSlots: 1, message: '⚡ Queen of Spades: Full Thrust Array! ✖️1.4x altitude + 1 tank slot' }
         : { tankSlots: 1, message: '⚡ Queen of Spades: Need 3 spades — no multiplier, but +1 tank slot' }
     }
   },
@@ -101,9 +101,9 @@ const CARD_EFFECTS = {
   'J_spades': {
     emoji: '💥',
     holdEffect: {
-      desc: '✖️1.15x altitude + ⛽ +1 tank slot',
+      desc: '✖️1.35x altitude + ⛽ +1 tank slot',
       emoji: '✖️',
-      fn: () => ({ altitudeMult: 1.15, tankSlots: 1, message: '💥 Jack of Spades: Booster ignition! ✖️1.15x altitude + 1 tank slot' })
+      fn: () => ({ altitudeMult: 1.25, tankSlots: 1, message: '💥 Jack of Spades: Booster ignition! ✖️1.25x altitude + 1 tank slot' })
     }
   },
 
@@ -147,18 +147,18 @@ const CARD_EFFECTS = {
   'A_hearts': {
     emoji: '💗',
     holdEffect: {
-      desc: '⛽ +2 tank slots + ✖️1.2x altitude',
+      desc: '⛽ +2 tank slots + ✖️1.3x altitude',
       emoji: '⛽',
-      fn: () => ({ altitudeMult: 1.2, tankSlots: 2, message: '💗 Ace of Hearts: Life support online! ✖️1.2x altitude + 2 tank slots' })
+      fn: () => ({ altitudeMult: 1.3, tankSlots: 2, message: '💗 Ace of Hearts: Life support online! ✖️1.3x altitude + 2 tank slots' })
     }
   },
 
   'K_hearts': {
     emoji: '🫀',
     holdEffect: {
-      desc: '⛽ +2 tank slots + ✖️1.15x altitude',
+      desc: '⛽ +2 tank slots + ✖️1.25x altitude',
       emoji: '⛽',
-      fn: () => ({ altitudeMult: 1.15, tankSlots: 2, message: '🫀 King of Hearts: Full life support! ✖️1.15x altitude + 2 tank slots' })
+      fn: () => ({ altitudeMult: 1.25, tankSlots: 2, message: '🫀 King of Hearts: Full life support! ✖️1.25x altitude + 2 tank slots' })
     }
   },
 
@@ -174,9 +174,9 @@ const CARD_EFFECTS = {
   'J_hearts': {
     emoji: '🩺',
     holdEffect: {
-      desc: '⛽ +1 tank slot + ✖️1.1x altitude',
+      desc: '⛽ +1 tank slot + ✖️1.2x altitude',
       emoji: '⛽',
-      fn: () => ({ altitudeMult: 1.1, tankSlots: 1, message: '🩺 Jack of Hearts: Medic on deck! ✖️1.1x altitude + 1 tank slot' })
+      fn: () => ({ altitudeMult: 1.2, tankSlots: 1, message: '🩺 Jack of Hearts: Medic on deck! ✖️1.2x altitude + 1 tank slot' })
     }
   },
 
@@ -261,11 +261,11 @@ const CARD_EFFECTS = {
   'K_diamonds': {
     emoji: '🔬',
     holdEffect: {
-      desc: '✖️1.4x altitude — only if you burned zero ♦️',
+      desc: '✖️1.5x altitude — only if you burned zero ♦️',
       emoji: '✖️',
       condition: (gs) => gs.burnedSuitCount('diamonds') === 0,
       fn: (gs) => gs.burnedSuitCount('diamonds') === 0
-        ? { altitudeMult: 1.4, message: '🔬 King of Diamonds: Pure engineering! ✖️1.4x altitude' }
+        ? { altitudeMult: 1.5, message: '🔬 King of Diamonds: Pure engineering! ✖️1.5x altitude' }
         : { message: '🔬 King of Diamonds: Burned diamonds detected — bonus lost' }
     }
   },
@@ -273,13 +273,13 @@ const CARD_EFFECTS = {
   'Q_diamonds': {
     emoji: '⚙️',
     holdEffect: {
-      desc: '✖️1.2x altitude if you hold any other ♦️',
+      desc: '✖️1.3x altitude if you hold any other ♦️',
       emoji: '✖️',
       condition: (gs) => gs.heldCards.some(c => c.suit === 'diamonds' && c.id !== 'Q_diamonds'),
       fn: (gs) => {
         const hasDiamond = gs.heldCards.some(c => c.suit === 'diamonds' && c.id !== 'Q_diamonds');
         return hasDiamond
-          ? { altitudeMult: 1.2, message: '⚙️ Queen of Diamonds: Diamond sync! ✖️1.2x altitude' }
+          ? { altitudeMult: 1.3, message: '⚙️ Queen of Diamonds: Diamond sync! ✖️1.3x altitude' }
           : { message: '⚙️ Queen of Diamonds: Need another ♦️ — no bonus' };
       }
     }
@@ -288,11 +288,11 @@ const CARD_EFFECTS = {
   'J_diamonds': {
     emoji: '🛠️',
     holdEffect: {
-      desc: '✖️1.15x altitude if you hold no ♠️',
+      desc: '✖️1.25x altitude if you hold no ♠️',
       emoji: '✖️',
       condition: (gs) => gs.heldSuitCount('spades') === 0,
       fn: (gs) => gs.heldSuitCount('spades') === 0
-        ? { altitudeMult: 1.15, message: '🛠️ Jack of Diamonds: Clean integration! ✖️1.15x altitude' }
+        ? { altitudeMult: 1.25, message: '🛠️ Jack of Diamonds: Clean integration! ✖️1.25x altitude' }
         : { message: '🛠️ Jack of Diamonds: Spade interference — no bonus' }
     }
   },
@@ -365,9 +365,9 @@ const CARD_EFFECTS = {
   'K_clubs': {
     emoji: '📻',
     holdEffect: {
-      desc: '✖️1.2x altitude + ⛽ +1 tank slot',
+      desc: '✖️1.3x altitude + ⛽ +1 tank slot',
       emoji: '✖️',
-      fn: () => ({ altitudeMult: 1.2, tankSlots: 1, message: '📻 King of Clubs: Mission Control confirms! ✖️1.2x altitude + 1 tank slot' })
+      fn: () => ({ altitudeMult: 1.3, tankSlots: 1, message: '📻 King of Clubs: Mission Control confirms! ✖️1.3x altitude + 1 tank slot' })
     }
   },
 
@@ -383,9 +383,9 @@ const CARD_EFFECTS = {
   'J_clubs': {
     emoji: '🧭',
     holdEffect: {
-      desc: '✖️1.25x altitude + ⛽ +1 tank slot',
+      desc: '✖️1.35x altitude + ⛽ +1 tank slot',
       emoji: '✖️',
-      fn: () => ({ altitudeMult: 1.25, tankSlots: 1, message: '🧭 Jack of Clubs: Optimal trajectory locked! ✖️1.25x altitude + 1 tank slot' })
+      fn: () => ({ altitudeMult: 1.35, tankSlots: 1, message: '🧭 Jack of Clubs: Optimal trajectory locked! ✖️1.35x altitude + 1 tank slot' })
     }
   },
 

@@ -150,11 +150,11 @@ function detectPokerHand(heldCards) {
   if (isStraightFlush) return { name: 'Straight Flush', emoji: '🌟', bonus: 400000 };
   if (allCounts[0] === 4) return { name: 'Four of a Kind', emoji: '💫', bonus: 200000 };
   if (allCounts[0] === 3 && (allCounts[1] === 2 || jokerCount > 0 && counts[0] === 2 && counts[1] === 2))
-    return { name: 'Full House', emoji: '🏠', bonus: 80000 };
-  if (isFlush) return { name: 'Flush', emoji: '♻️', bonus: 150000, jokerAssisted: jokerCount > 0 };
-  if (isStraight) return { name: 'Straight', emoji: '📈', bonus: 100000 };
-  if (allCounts[0] === 3) return { name: 'Three of a Kind', emoji: '🎯', bonus: 50000 };
-  if (allCounts[0] === 2 && allCounts[1] === 2) return { name: 'Two Pair', emoji: '👯', bonus: 25000 };
+    return { name: 'Full House', emoji: '🏠', bonus: 120000 };
+  if (isFlush) return { name: 'Flush', emoji: '♻️', bonus: 200000, jokerAssisted: jokerCount > 0 };
+  if (isStraight) return { name: 'Straight', emoji: '📈', bonus: 150000 };
+  if (allCounts[0] === 3) return { name: 'Three of a Kind', emoji: '🎯', bonus: 80000 };
+  if (allCounts[0] === 2 && allCounts[1] === 2) return { name: 'Two Pair', emoji: '👯', bonus: 40000 };
   if (allCounts[0] === 2) return { name: 'One Pair', emoji: '✌️', bonus: 10000 };
   return null;
 }
