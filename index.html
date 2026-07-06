@@ -113,7 +113,7 @@
 
     // Listen for launch complete
     gs.on('launchComplete', (result) => {
-      submitScore(gs.playerName, result.altitude, result.tier.name);
+      submitScore(gs.playerName, result.altitude, result.tier.name, gs.hand.map(c => c.id));
 
       playRocketAnimation(app, () => {
         const showResult = () => renderLaunchSequence(app, result, gs, () => {
