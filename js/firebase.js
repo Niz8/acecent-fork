@@ -17,7 +17,7 @@ const firebaseConfig = {
 
 let db = null;
 
-// May 1 2026 — start of fuel tank era scores
+// May 2 2026 — start of fuel tank era scores
 const HALL_OF_FAME_START = Timestamp.fromDate(new Date('2026-05-02T00:00:00Z'));
 
 function initFirebase() {
@@ -33,8 +33,9 @@ function initFirebase() {
 const DEV_PLAYER_NAME = 'acecent_dev';
 
 // Submit score to Firestore
+// hand: array of card IDs held at launch (e.g. ['A_spades', 'K_hearts', ...])
 // Returns { success, error }
-async function submitScore(playerName, altitude, tierName) {
+async function submitScore(playerName, altitude, tierName, hand = []) {
   if (playerName === DEV_PLAYER_NAME) {
     console.log(`[DEV] Score not submitted — dev bypass active (${altitude} ft, ${tierName})`);
     return { success: true };
@@ -48,6 +49,7 @@ async function submitScore(playerName, altitude, tierName) {
       tierName,
       date: dateString,
       version: VERSION,
+      hand,
       submittedAt: serverTimestamp(),
     });
     return { success: true };
@@ -58,7 +60,7 @@ async function submitScore(playerName, altitude, tierName) {
 }
 
 // Fetch top scores for today
-// Returns array of { playerName, altitude, tierName } sorted by altitude desc
+// Returns array of { playerName, altitude, tierName, hand? } sorted by altitude desc
 async function fetchDailyLeaderboard(maxEntries = 10) {
   if (!db) return { success: false, scores: [] };
   try {

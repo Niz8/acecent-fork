@@ -1,7 +1,7 @@
 // config.js — Project Acecent
 // Version and readme content live here
 
-const VERSION = '0.7.2-alpha';
+const VERSION = '0.7.3-alpha';
 
 const README = {
   version: VERSION,
@@ -163,6 +163,15 @@ DIAMOND BURN VALUE: All Diamond cards burn for half their face value. They are d
       id: 'patchnotes',
       title: '📋 Patch Notes',
       patches: [
+        {
+          version: '0.7.3-alpha',
+          date: 'Jul 2026',
+          notes: [
+            'Leaderboard now shows held hand for scores submitted from this version onward',
+            'Tap any leaderboard entry with hand data to expand and see the held cards and poker hand',
+            'Entries without hand data (older scores) show no expand option',
+          ]
+        },
         {
           version: '0.7.2-alpha',
           date: 'Jul 2026',
