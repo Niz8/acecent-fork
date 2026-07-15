@@ -80,13 +80,13 @@ function detectHandName(handIds) {
     : counts;
 
   if (isStraightFlush)                              return 'Straight Flush 🌟';
-  if (allCounts[0] === 4)                           return 'Four of a Kind 💫';
-  if (allCounts[0] === 3 && allCounts[1] === 2)     return 'Full House 🏠';
+  if (allCounts[0] >= 4)                           return 'Four of a Kind 💫';
+  if (allCounts[0] >= 3 && allCounts[1] >= 2)     return 'Full House 🏠';
   if (isFlush)   return jokerCount > 0 ? 'Flush ♻️ (Joker wild)' : 'Flush ♻️';
   if (isStraight)                                   return 'Straight 📈';
-  if (allCounts[0] === 3)                           return 'Three of a Kind 🎯';
-  if (allCounts[0] === 2 && allCounts[1] === 2)     return 'Two Pair 👯';
-  if (allCounts[0] === 2)                           return 'One Pair ✌️';
+  if (allCounts[0] >= 3)                           return 'Three of a Kind 🎯';
+  if (allCounts[0] >= 2 && allCounts[1] >= 2)     return 'Two Pair 👯';
+  if (allCounts[0] >= 2)                           return 'One Pair ✌️';
   return null;
 }
 

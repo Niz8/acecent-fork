@@ -1,7 +1,7 @@
 // config.js — Project Acecent
 // Version and readme content live here
 
-const VERSION = '0.7.3-alpha';
+const VERSION = '0.7.4-alpha';
 
 const README = {
   version: VERSION,
@@ -163,6 +163,13 @@ DIAMOND BURN VALUE: All Diamond cards burn for half their face value. They are d
       id: 'patchnotes',
       title: '📋 Patch Notes',
       patches: [
+        {
+          version: '0.7.4-alpha',
+          date: 'Jul 2026',
+          notes: [
+            'Fixed: Joker-boosted hands now correctly detect Four of a Kind (e.g. 3 Queens + 2 Jokers was not scoring as Four of a Kind)',
+          ]
+        },
         {
           version: '0.7.3-alpha',
           date: 'Jul 2026',
