@@ -23,7 +23,6 @@
 
     initFirebase();
 
-    // Version mismatch check — prompt cache refresh
     const LS_LIVE_VERSION = 'acecent_live_version';
     import('./js/config.js').then(({ VERSION }) => {
       const cachedVersion = localStorage.getItem(LS_LIVE_VERSION);
@@ -44,7 +43,6 @@
       }
     });
 
-    // Floating help button — always accessible
     document.getElementById('floating-help-btn').addEventListener('click', () => showReadme(false));
 
     const app = document.getElementById('app');
@@ -52,7 +50,6 @@
 
     function render() {
       if (gs.phase === PHASES.NAME_ENTRY) {
-        // Check if already played today
         const existing = gs.loadTodayResult();
         if (existing) {
           showAlreadyPlayed(existing);
@@ -71,47 +68,96 @@
     }
 
     function showAlreadyPlayed(result) {
+      // Render the log replay screen first
       app.innerHTML = `
-        <div class="screen already-played-screen">
-          <div class="title-block">
-            <div class="title-emoji">🚀</div>
-            <h1 class="game-title">Project Acecent</h1>
-          </div>
-          <div class="already-card">
-            <p class="already-label">TODAY'S FLIGHT</p>
+        <div class="screen result-screen">
+          <div class="result-header">
             <div class="result-tier-emoji">${result.tier.emoji}</div>
             <div class="result-tier-name">${result.tier.name}</div>
             <div class="result-altitude">${result.altitude.toLocaleString()} ft</div>
             <div class="result-pilot">👤 ${result.playerName}</div>
           </div>
-          <button id="share-again-btn" class="btn-primary" style="margin-top:2rem">
-            📋 Copy Share Card
-          </button>
-          <button id="leaderboard-again-btn" class="btn-secondary">
-            📡 View Leaderboard
-          </button>
-          <div id="share-confirm-2" class="share-confirm" style="display:none">✅ Copied!</div>
-          <p class="come-back">Come back tomorrow for a new mission! 🌙</p>
-          <div class="scoreboard-notice">📡 Daily Leaderboard — Live</div>
+          <div class="launch-log" id="replay-log"></div>
+          <div class="result-actions" style="margin-top:1rem;">
+            <button id="skip-replay-btn" class="btn-secondary">Skip ⏩</button>
+          </div>
         </div>
       `;
 
-      import('./js/share.js').then(({ copyShareCard }) => {
-        document.getElementById('share-again-btn').addEventListener('click', async () => {
-          const { success } = await copyShareCard(result);
-          const el = document.getElementById('share-confirm-2');
-          el.style.display = 'block';
-          el.textContent = success ? '✅ Copied!' : '📋 Copy failed';
-          setTimeout(() => { el.style.display = 'none'; }, 2000);
+      const logContainer = app.querySelector('#replay-log');
+      const skipBtn = app.querySelector('#skip-replay-btn');
+      let skipped = false;
+      let timeouts = [];
+
+      function showFinalScreen() {
+        timeouts.forEach(t => clearTimeout(t));
+        app.innerHTML = `
+          <div class="screen already-played-screen">
+            <div class="title-block">
+              <div class="title-emoji">🚀</div>
+              <h1 class="game-title">Project Acecent</h1>
+            </div>
+            <div class="already-card">
+              <p class="already-label">TODAY'S FLIGHT</p>
+              <div class="result-tier-emoji">${result.tier.emoji}</div>
+              <div class="result-tier-name">${result.tier.name}</div>
+              <div class="result-altitude">${result.altitude.toLocaleString()} ft</div>
+              <div class="result-pilot">👤 ${result.playerName}</div>
+            </div>
+            <button id="share-again-btn" class="btn-primary" style="margin-top:2rem">
+              📋 Copy Share Card
+            </button>
+            <button id="leaderboard-again-btn" class="btn-secondary">
+              📡 View Leaderboard
+            </button>
+            <div id="share-confirm-2" class="share-confirm" style="display:none">✅ Copied!</div>
+            <p class="come-back">Come back tomorrow for a new mission! 🌙</p>
+            <div class="scoreboard-notice">📡 Daily Leaderboard — Live</div>
+          </div>
+        `;
+
+        import('./js/share.js').then(({ copyShareCard }) => {
+          document.getElementById('share-again-btn').addEventListener('click', async () => {
+            const { success } = await copyShareCard(result);
+            const el = document.getElementById('share-confirm-2');
+            el.style.display = 'block';
+            el.textContent = success ? '✅ Copied!' : '📋 Copy failed';
+            setTimeout(() => { el.style.display = 'none'; }, 2000);
+          });
         });
+
+        document.getElementById('leaderboard-again-btn').addEventListener('click', () => {
+          renderLeaderboard(app, result.playerName, result.altitude, () => showAlreadyPlayed(result));
+        });
+      }
+
+      skipBtn.addEventListener('click', () => {
+        skipped = true;
+        showFinalScreen();
       });
 
-      document.getElementById('leaderboard-again-btn').addEventListener('click', () => {
-        renderLeaderboard(app, result.playerName, result.altitude, () => showAlreadyPlayed(result));
-      });
+      // Animate log lines
+      if (result.log && result.log.length > 0) {
+        result.log.forEach((line, i) => {
+          const t = setTimeout(() => {
+            if (skipped) return;
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = line;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            // After last line, transition to final screen
+            if (i === result.log.length - 1) {
+              setTimeout(() => { if (!skipped) showFinalScreen(); }, 1200);
+            }
+          }, i * 280);
+          timeouts.push(t);
+        });
+      } else {
+        showFinalScreen();
+      }
     }
 
-    // Listen for launch complete
     gs.on('launchComplete', (result) => {
       submitScore(gs.playerName, result.altitude, result.tier.name, gs.hand.map(c => c.id));
 
@@ -123,7 +169,6 @@
       });
     });
 
-    // Listen for redraw bonuses
     gs.on('redrawBonus', ({ message }) => {
       showToast(message);
     });
@@ -142,7 +187,6 @@
 
     render();
 
-    // Show readme on first load or version bump
     if (shouldShow()) {
       setTimeout(() => showReadme(isVersionBump()), 400);
     }
