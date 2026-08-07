@@ -1,7 +1,7 @@
 // config.js — Project Acecent
 // Version and readme content live here
 
-const VERSION = '0.7.4-alpha';
+const VERSION = '0.9.0-beta';
 
 const README = {
   version: VERSION,
@@ -53,7 +53,7 @@ Strategy: decide early whether you are building a deep-burn deck (hold tank-expa
 
 The status bar shows your current best poker hand live as you redraw. Stop burning when you hit a strong hand — more burns expand your tank but may break your poker configuration.
 
-Jokers are wild for flush detection. Two Jokers and three Clubs counts as a Flush. Jokers are not wild for straights yet — this is coming in a future update. A Joker-assisted flush cannot become a Straight Flush.`
+Jokers are fully wild for flushes and straights. Two Jokers and three Clubs counts as a Flush. A Joker can fill any gap in a straight. A Joker-assisted hand can score a Straight Flush if both conditions are met.`
     },
     {
       id: 'tiers',
@@ -163,6 +163,17 @@ DIAMOND BURN VALUE: All Diamond cards burn for half their face value. They are d
       id: 'patchnotes',
       title: '📋 Patch Notes',
       patches: [
+        {
+          version: '0.9.0-beta',
+          date: 'Jul 2026',
+          notes: [
+            'Jokers are now wild for straights — a Joker can fill any gap in a consecutive run',
+            'Joker-assisted straights noted in the launch log',
+            'Joker straight flush now possible when both flush and straight conditions are met with Jokers',
+            'XSS protection: player names and tier names are now sanitized before rendering in the leaderboard',
+            'Already-played screen now replays your launch log on return — tap Skip to jump to results',
+          ]
+        },
         {
           version: '0.7.4-alpha',
           date: 'Jul 2026',

@@ -19,8 +19,6 @@ function getTier(altitude) {
   return ALTITUDE_TIERS.find(t => altitude >= t.min && altitude <= t.max) || ALTITUDE_TIERS[0];
 }
 
-// Cards that add tank slots when held — non-diamond face cards
-// Computed dynamically from held hand
 function getTankSize(heldCards) {
   let size = BASE_TANK_SIZE;
   for (const card of heldCards) {
@@ -33,7 +31,6 @@ function getTankSize(heldCards) {
   return size;
 }
 
-// Tank slot contributions by card ID
 const TANK_SLOT_CARDS = {
   'A_spades': 1, 'K_spades': 1, 'Q_spades': 1, 'J_spades': 1,
   'A_hearts': 2, 'K_hearts': 2,
@@ -41,7 +38,6 @@ const TANK_SLOT_CARDS = {
   'K_clubs': 1, 'J_clubs': 1,
 };
 
-// Build gameState context for effect functions
 function buildGameStateContext(heldCards, burnedCards, rng) {
   const heldSuitCounts = {};
   for (const card of heldCards) {
@@ -65,48 +61,68 @@ function buildGameStateContext(heldCards, burnedCards, rng) {
   };
 }
 
-// Apply fuel tank — only top N burned cards count, oldest fall off
 function applyFuelTank(burnedCards, tankSize, log) {
   if (burnedCards.length <= tankSize) {
-    log.push(`⛽ Tank: ${burnedCards.length}/${tankSize} slots used — all fuel counts`);
+    log.push(`\u26fd Tank: ${burnedCards.length}/${tankSize} slots used \u2014 all fuel counts`);
     return burnedCards;
   }
   const overflow = burnedCards.length - tankSize;
   const dropped = burnedCards.slice(0, overflow);
   const kept = burnedCards.slice(overflow);
-  dropped.forEach(c => log.push(`💨 ${c.emoji} ${c.rank}${c.suitSymbol} overflowed tank — fuel lost`));
-  log.push(`⛽ Tank: ${kept.length}/${tankSize} slots — oldest ${overflow} card${overflow > 1 ? 's' : ''} dropped`);
+  dropped.forEach(c => log.push(`\U0001f4a8 ${c.emoji} ${c.rank}${c.suitSymbol} overflowed tank \u2014 fuel lost`));
+  log.push(`\u26fd Tank: ${kept.length}/${tankSize} slots \u2014 oldest ${overflow} card${overflow > 1 ? 's' : ''} dropped`);
   return kept;
 }
 
-// Calculate fuel from kept burned cards
 function calculateFuel(keptBurnedCards, heldCards, log) {
   let fuel = 0;
-
   const hasKingSpades = heldCards.some(c => c.id === 'K_spades');
   const has10Spades = heldCards.some(c => c.id === '10_spades');
 
   for (const card of keptBurnedCards) {
     let cardFuel = card.burnValue * FUEL_PER_BURN_UNIT;
     let multiplier = 1;
-
     if (card.suit === 'spades') {
       if (hasKingSpades) multiplier *= 2;
       if (has10Spades) multiplier *= 1.5;
     }
-
     const finalFuel = Math.round(cardFuel * multiplier);
     fuel += finalFuel;
-
-    const multNote = multiplier > 1 ? ` (✖️${multiplier.toFixed(2)}x boosted)` : '';
-    log.push(`⛽ ${card.emoji} ${card.rank}${card.suitSymbol} burned: +${finalFuel.toLocaleString()} ft${multNote}`);
+    const multNote = multiplier > 1 ? ` (\u2716\ufe0f${multiplier.toFixed(2)}x boosted)` : '';
+    log.push(`\u26fd ${card.emoji} ${card.rank}${card.suitSymbol} burned: +${finalFuel.toLocaleString()} ft${multNote}`);
   }
-
   return fuel;
 }
 
+// Check if non-joker rank indices can form a straight with N jokers filling gaps
+// Also handles ace-low (A-2-3-4-5)
+function canFormStraightWithJokers(rankIndices, jokerCount) {
+  if (rankIndices.length === 0) return jokerCount >= 5; // all jokers
+  if (new Set(rankIndices).size !== rankIndices.length) return false; // duplicate ranks — jokers can't fix
+
+  const sorted = [...rankIndices].sort((a, b) => a - b);
+  const span = sorted[sorted.length - 1] - sorted[0];
+
+  // High-ace check: span must be <= 4 and gaps fillable with available jokers
+  const gapsNeeded = span - (sorted.length - 1); // gaps between existing cards
+  const slotsNeeded = 4 - span; // slots needed to reach 5 cards total
+  const highAceWorks = span <= 4 && gapsNeeded + slotsNeeded <= jokerCount;
+
+  // Low-ace check: treat A (index 12) as index -1
+  let lowAceWorks = false;
+  if (rankIndices.includes(12)) {
+    const lowSorted = sorted.map(i => i === 12 ? -1 : i).sort((a, b) => a - b);
+    const lowSpan = lowSorted[lowSorted.length - 1] - lowSorted[0];
+    const lowGaps = lowSpan - (lowSorted.length - 1);
+    const lowSlots = 4 - lowSpan;
+    lowAceWorks = lowSpan <= 4 && lowGaps + lowSlots <= jokerCount;
+  }
+
+  return highAceWorks || lowAceWorks;
+}
+
 // Poker hand detection on held hand
-// Jokers are wild for flush detection only — not straights
+// Jokers are wild for flushes, straights, and rank combos
 function detectPokerHand(heldCards) {
   const nonJokers = heldCards.filter(c => c.suit !== 'joker');
   const jokerCount = heldCards.length - nonJokers.length;
@@ -119,25 +135,19 @@ function detectPokerHand(heldCards) {
   for (const r of ranks) rankCounts[r] = (rankCounts[r] || 0) + 1;
   const counts = Object.values(rankCounts).sort((a, b) => b - a);
 
-  // Flush: jokers are wild — all non-joker cards share a suit (or hand is all jokers)
+  // Flush: jokers wild — all non-joker cards share a suit
   const isFlush = heldCards.length === 5 && (
-    nonJokers.length === 0 ||
-    suits.every(s => s === suits[0])
+    nonJokers.length === 0 || suits.every(s => s === suits[0])
   );
 
-  // Straight: jokers not wild for straights
-  const rankIndices = ranks.map(r => rankOrder.indexOf(r)).sort((a, b) => a - b);
-  const isStraight = heldCards.length === 5 &&
-    jokerCount === 0 &&
-    rankIndices.every((v, i) => i === 0 || v === rankIndices[i - 1] + 1) &&
-    new Set(ranks).size === 5;
+  // Straight: jokers now wild
+  const rankIndices = ranks.map(r => rankOrder.indexOf(r));
+  const isStraight = heldCards.length === 5 && canFormStraightWithJokers(rankIndices, jokerCount);
 
-  // Straight flush requires both — jokers are not wild for either component here
-  // (a joker-assisted flush cannot also be a straight flush)
-  const isStraightFlush = isFlush && isStraight && jokerCount === 0;
+  // Straight flush: both conditions met
+  const isStraightFlush = isFlush && isStraight;
 
-  // Build effective rank counts including jokers for pair/trips/quads
-  // Jokers act as the best possible rank match
+  // Rank combos: jokers boost highest count
   const allCounts = jokerCount > 0
     ? (() => {
         const c = [...counts];
@@ -147,18 +157,17 @@ function detectPokerHand(heldCards) {
       })()
     : counts;
 
-  if (isStraightFlush) return { name: 'Straight Flush', emoji: '🌟', bonus: 400000 };
-  if (allCounts[0] >= 4) return { name: 'Four of a Kind', emoji: '💫', bonus: 200000 };
-  if (allCounts[0] >= 3 && allCounts[1] >= 2) return { name: 'Full House', emoji: '🏠', bonus: 120000 };
-  if (isFlush) return { name: 'Flush', emoji: '♻️', bonus: 200000, jokerAssisted: jokerCount > 0 };
-  if (isStraight) return { name: 'Straight', emoji: '📈', bonus: 150000 };
-  if (allCounts[0] >= 3) return { name: 'Three of a Kind', emoji: '🎯', bonus: 80000 };
-  if (allCounts[0] >= 2 && allCounts[1] >= 2) return { name: 'Two Pair', emoji: '👯', bonus: 40000 };
-  if (allCounts[0] >= 2) return { name: 'One Pair', emoji: '✌️', bonus: 10000 };
+  if (isStraightFlush) return { name: 'Straight Flush', emoji: '\U0001f31f', bonus: 400000, jokerAssisted: jokerCount > 0 };
+  if (allCounts[0] >= 4) return { name: 'Four of a Kind', emoji: '\U0001f4ab', bonus: 200000 };
+  if (allCounts[0] >= 3 && allCounts[1] >= 2) return { name: 'Full House', emoji: '\U0001f3e0', bonus: 120000 };
+  if (isFlush) return { name: 'Flush', emoji: '\u267b\ufe0f', bonus: 200000, jokerAssisted: jokerCount > 0 };
+  if (isStraight) return { name: 'Straight', emoji: '\U0001f4c8', bonus: 150000, jokerAssisted: jokerCount > 0 };
+  if (allCounts[0] >= 3) return { name: 'Three of a Kind', emoji: '\U0001f3af', bonus: 80000 };
+  if (allCounts[0] >= 2 && allCounts[1] >= 2) return { name: 'Two Pair', emoji: '\U0001f46f', bonus: 40000 };
+  if (allCounts[0] >= 2) return { name: 'One Pair', emoji: '\u270c\ufe0f', bonus: 10000 };
   return null;
 }
 
-// Process all held card effects
 function processHeldEffects(heldCards, gs) {
   const log = [];
   let flatBonus = 0;
@@ -175,25 +184,19 @@ function processHeldEffects(heldCards, gs) {
   return { flatBonus, multipliers, log };
 }
 
-// Master launch calculation
 function calculateLaunch(heldCards, burnedCards, rng) {
   const gs = buildGameStateContext(heldCards, burnedCards, rng);
   const fullLog = [];
 
-  fullLog.push('🔧 ENGINE CHECK...');
+  fullLog.push('\U0001f527 ENGINE CHECK...');
 
-  // 1. Determine tank size from held cards
   const tankSize = getTankSize(heldCards);
-  fullLog.push(`⛽ Fuel tank capacity: ${tankSize} slots`);
+  fullLog.push(`\u26fd Fuel tank capacity: ${tankSize} slots`);
 
-  // 2. Apply tank — oldest cards fall off if over limit
   const keptBurned = applyFuelTank(burnedCards, tankSize, fullLog);
-
-  // 3. Calculate fuel from kept cards
   const fuel = calculateFuel(keptBurned, heldCards, fullLog);
-  fullLog.push(`⛽ Total fuel: ${fuel.toLocaleString()} ft`);
+  fullLog.push(`\u26fd Total fuel: ${fuel.toLocaleString()} ft`);
 
-  // 4. Poker hand bonus on held cards
   const pokerHand = detectPokerHand(heldCards);
   let pokerBonus = 0;
   if (pokerHand) {
@@ -202,26 +205,22 @@ function calculateLaunch(heldCards, burnedCards, rng) {
     fullLog.push(`${pokerHand.emoji} ${pokerHand.name.toUpperCase()}!${jokerNote} +${pokerBonus.toLocaleString()} ft`);
   }
 
-  // 5. Held card effects
   const { flatBonus, multipliers, log: effectLog } = processHeldEffects(heldCards, gs);
   fullLog.push(...effectLog);
 
-  // 6. Apply flat bonuses (fuel + poker + card flats)
   let altitude = fuel + pokerBonus + flatBonus;
   const totalFlat = pokerBonus + flatBonus;
-  if (totalFlat > 0) fullLog.push(`🚀 Flat bonuses: +${totalFlat.toLocaleString()} ft → ${altitude.toLocaleString()} ft`);
+  if (totalFlat > 0) fullLog.push(`\U0001f680 Flat bonuses: +${totalFlat.toLocaleString()} ft \u2192 ${altitude.toLocaleString()} ft`);
 
-  // 7. Apply multipliers
   for (const mult of multipliers) {
     altitude = Math.round(altitude * mult);
-    fullLog.push(`✖️ Multiplier ✖️${mult}x → ${altitude.toLocaleString()} ft`);
+    fullLog.push(`\u2716\ufe0f Multiplier \u2716\ufe0f${mult}x \u2192 ${altitude.toLocaleString()} ft`);
   }
 
-  // 8. Floor at 0
   altitude = Math.max(0, altitude);
 
   const tier = getTier(altitude);
-  fullLog.push(`🎯 FINAL ALTITUDE: ${altitude.toLocaleString()} ft`);
+  fullLog.push(`\U0001f3af FINAL ALTITUDE: ${altitude.toLocaleString()} ft`);
   fullLog.push(`${tier.emoji} ${tier.name.toUpperCase()}`);
 
   return { altitude, tier, log: fullLog };

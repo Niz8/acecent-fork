@@ -4,22 +4,31 @@
 import { fetchDailyLeaderboard, fetchHallOfFame } from './firebase.js';
 
 const DAILY_QUOTES = [
-  'That\'s one small step for man, one giant leap for mankind.',       // Sunday
-  'Man must explore and this is exploration at its greatest.',          // Monday
-  'Houston, Tranquility Base here, the Eagle has landed.',             // Tuesday
-  'From space, I saw Earth not as a collection of nations, but as a single entity with one destiny.', // Wednesday
-  'Planet Earth: You. Are. A. Crew.',                                  // Thursday
-  'The stars don\'t look bigger, but they do look brighter.',          // Friday
-  'Amaze, amaze, amaze.',                                              // Saturday
+  'That's one small step for man, one giant leap for mankind.',
+  'Man must explore and this is exploration at its greatest.',
+  'Houston, Tranquility Base here, the Eagle has landed.',
+  'From space, I saw Earth not as a collection of nations, but as a single entity with one destiny.',
+  'Planet Earth: You. Are. A. Crew.',
+  'The stars don't look bigger, but they do look brighter.',
+  'Amaze, amaze, amaze.',
 ];
 
 function getDailyQuote() {
-  const day = new Date().getDay(); // 0 = Sunday
+  const day = new Date().getDay();
   return DAILY_QUOTES[day];
 }
 
-// Lightweight card ID parser — avoids importing full deck module
-// Returns { rank, suitSymbol, colorClass } from an ID like 'A_spades', 'JOKER_red'
+// Sanitize user-supplied strings before inserting into innerHTML
+function escapeHTML(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function parseCardId(id) {
   if (!id) return null;
   if (id === 'JOKER_red')   return { rank: '🃏', suitSymbol: 'Red', colorClass: 'lb-card-joker' };
@@ -28,7 +37,7 @@ function parseCardId(id) {
   const parts = id.split('_');
   if (parts.length < 2) return null;
   const rank = parts[0];
-  const suit = parts.slice(1).join('_'); // handles multi-word suits if ever added
+  const suit = parts.slice(1).join('_');
 
   const suitMap = {
     spades:   { symbol: '♠️', colorClass: '' },
@@ -42,8 +51,29 @@ function parseCardId(id) {
   return { rank, suitSymbol: s.symbol, colorClass: s.colorClass };
 }
 
-// Detect poker hand name from array of card IDs
-// Mirrors detectPokerHand in effects.js but returns name only for display
+// Check if non-joker rank indices can form a straight with N jokers filling gaps
+function canFormStraightWithJokers(rankIndices, jokerCount) {
+  if (rankIndices.length === 0) return jokerCount >= 5;
+  if (new Set(rankIndices).size !== rankIndices.length) return false;
+
+  const sorted = [...rankIndices].sort((a, b) => a - b);
+  const span = sorted[sorted.length - 1] - sorted[0];
+  const gapsNeeded = span - (sorted.length - 1);
+  const slotsNeeded = 4 - span;
+  const highAceWorks = span <= 4 && gapsNeeded + slotsNeeded <= jokerCount;
+
+  let lowAceWorks = false;
+  if (rankIndices.includes(12)) {
+    const lowSorted = sorted.map(i => i === 12 ? -1 : i).sort((a, b) => a - b);
+    const lowSpan = lowSorted[lowSorted.length - 1] - lowSorted[0];
+    const lowGaps = lowSpan - (lowSorted.length - 1);
+    const lowSlots = 4 - lowSpan;
+    lowAceWorks = lowSpan <= 4 && lowGaps + lowSlots <= jokerCount;
+  }
+
+  return highAceWorks || lowAceWorks;
+}
+
 function detectHandName(handIds) {
   if (!handIds || handIds.length === 0) return null;
 
@@ -62,13 +92,9 @@ function detectHandName(handIds) {
     nonJokers.length === 0 || suits.every(s => s === suits[0])
   );
 
-  const rankIndices = ranks.map(r => rankOrder.indexOf(r)).sort((a, b) => a - b);
-  const isStraight = handIds.length === 5 &&
-    jokerCount === 0 &&
-    rankIndices.every((v, i) => i === 0 || v === rankIndices[i - 1] + 1) &&
-    new Set(ranks).size === 5;
-
-  const isStraightFlush = isFlush && isStraight && jokerCount === 0;
+  const rankIndices = ranks.map(r => rankOrder.indexOf(r));
+  const isStraight = handIds.length === 5 && canFormStraightWithJokers(rankIndices, jokerCount);
+  const isStraightFlush = isFlush && isStraight;
 
   const allCounts = jokerCount > 0
     ? (() => {
@@ -79,14 +105,14 @@ function detectHandName(handIds) {
       })()
     : counts;
 
-  if (isStraightFlush)                              return 'Straight Flush 🌟';
-  if (allCounts[0] >= 4)                           return 'Four of a Kind 💫';
-  if (allCounts[0] >= 3 && allCounts[1] >= 2)     return 'Full House 🏠';
+  if (isStraightFlush) return jokerCount > 0 ? 'Straight Flush 🌟 (Joker wild)' : 'Straight Flush 🌟';
+  if (allCounts[0] >= 4)                       return 'Four of a Kind 💫';
+  if (allCounts[0] >= 3 && allCounts[1] >= 2) return 'Full House 🏠';
   if (isFlush)   return jokerCount > 0 ? 'Flush ♻️ (Joker wild)' : 'Flush ♻️';
-  if (isStraight)                                   return 'Straight 📈';
-  if (allCounts[0] >= 3)                           return 'Three of a Kind 🎯';
-  if (allCounts[0] >= 2 && allCounts[1] >= 2)     return 'Two Pair 👯';
-  if (allCounts[0] >= 2)                           return 'One Pair ✌️';
+  if (isStraight) return jokerCount > 0 ? 'Straight 📈 (Joker wild)' : 'Straight 📈';
+  if (allCounts[0] >= 3)                       return 'Three of a Kind 🎯';
+  if (allCounts[0] >= 2 && allCounts[1] >= 2) return 'Two Pair 👯';
+  if (allCounts[0] >= 2)                       return 'One Pair ✌️';
   return null;
 }
 
@@ -117,11 +143,9 @@ function attachExpandListeners(container) {
       const chevron = row.querySelector('.lb-chevron');
       if (!panel) return;
       const isOpen = panel.style.display !== 'none';
-      // Close all
       container.querySelectorAll('.lb-expand-panel').forEach(p => p.style.display = 'none');
       container.querySelectorAll('.lb-chevron').forEach(c => c.textContent = '▼');
       container.querySelectorAll('.lb-entry-expandable').forEach(r => r.classList.remove('lb-entry-expanded'));
-      // Toggle open
       if (!isOpen) {
         panel.style.display = 'block';
         chevron.textContent = '▲';
@@ -155,7 +179,6 @@ function renderLeaderboard(container, playerName, playerAltitude, onClose) {
 
   container.querySelector('#leaderboard-close').addEventListener('click', onClose);
 
-  // Fetch daily leaderboard
   fetchDailyLeaderboard(20).then(({ success, scores }) => {
     const list = container.querySelector('#leaderboard-list');
     if (!success || scores.length === 0) {
@@ -170,13 +193,15 @@ function renderLeaderboard(container, playerName, playerAltitude, onClose) {
       const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
       const expandable = hasHand(entry);
       const entryId = `lb-${i}`;
+      const safeName = escapeHTML(entry.playerName);
+      const safeTier = escapeHTML(entry.tierName);
 
       return `
         <div class="leaderboard-entry ${isPlayer ? 'leaderboard-you' : ''} ${expandable ? 'lb-entry-expandable' : ''}"
              ${expandable ? `data-expand-id="${entryId}"` : ''}>
           <span class="leaderboard-rank">${medal}</span>
-          <span class="leaderboard-name">${entry.playerName}</span>
-          <span class="leaderboard-tier">${entry.tierName}</span>
+          <span class="leaderboard-name">${safeName}</span>
+          <span class="leaderboard-tier">${safeTier}</span>
           <span class="leaderboard-altitude">${entry.altitude.toLocaleString()} ft</span>
           ${expandable ? `<span class="lb-chevron">▼</span>` : ''}
         </div>
@@ -187,7 +212,6 @@ function renderLeaderboard(container, playerName, playerAltitude, onClose) {
     attachExpandListeners(list);
   });
 
-  // Fetch hall of fame
   fetchHallOfFame().then(({ success, scores }) => {
     const hof = container.querySelector('#hall-of-fame');
     if (!success) {
@@ -200,8 +224,8 @@ function renderLeaderboard(container, playerName, playerAltitude, onClose) {
       : scores.map(score => `
           <div class="leaderboard-entry hof-entry">
             <span class="leaderboard-rank">🏆</span>
-            <span class="leaderboard-name">${score.playerName}</span>
-            <span class="leaderboard-tier">${score.tierName}</span>
+            <span class="leaderboard-name">${escapeHTML(score.playerName)}</span>
+            <span class="leaderboard-tier">${escapeHTML(score.tierName)}</span>
             <span class="leaderboard-altitude">${score.altitude.toLocaleString()} ft</span>
           </div>
         `).join('');
