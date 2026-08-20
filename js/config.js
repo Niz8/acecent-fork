@@ -167,6 +167,7 @@ DIAMOND BURN VALUE: All Diamond cards burn for half their face value. They are d
           version: '0.9.0-beta',
           date: 'Jul 2026',
           notes: [
+            '🎉 Project Acecent is now in beta! Share with friends and see who can go the highest.',
             'Jokers are now wild for straights — a Joker can fill any gap in a consecutive run',
             'Joker-assisted straights noted in the launch log',
             'Joker straight flush now possible when both flush and straight conditions are met with Jokers',

@@ -4,13 +4,13 @@
 import { fetchDailyLeaderboard, fetchHallOfFame } from './firebase.js';
 
 const DAILY_QUOTES = [
-  'That's one small step for man, one giant leap for mankind.',
-  'Man must explore and this is exploration at its greatest.',
-  'Houston, Tranquility Base here, the Eagle has landed.',
-  'From space, I saw Earth not as a collection of nations, but as a single entity with one destiny.',
-  'Planet Earth: You. Are. A. Crew.',
-  'The stars don't look bigger, but they do look brighter.',
-  'Amaze, amaze, amaze.',
+  "That's one small step for man, one giant leap for mankind.",
+  "Man must explore and this is exploration at its greatest.",
+  "Houston, Tranquility Base here, the Eagle has landed.",
+  "From space, I saw Earth not as a collection of nations, but as a single entity with one destiny.",
+  "Planet Earth: You. Are. A. Crew.",
+  "The stars don't look bigger, but they do look brighter.",
+  "Amaze, amaze, amaze.",
 ];
 
 function getDailyQuote() {
