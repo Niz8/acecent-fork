@@ -69,7 +69,7 @@ function applyFuelTank(burnedCards, tankSize, log) {
   const overflow = burnedCards.length - tankSize;
   const dropped = burnedCards.slice(0, overflow);
   const kept = burnedCards.slice(overflow);
-  dropped.forEach(c => log.push(`\U0001f4a8 ${c.emoji} ${c.rank}${c.suitSymbol} overflowed tank \u2014 fuel lost`));
+  dropped.forEach(c => log.push(`\💨 ${c.emoji} ${c.rank}${c.suitSymbol} overflowed tank \u2014 fuel lost`));
   log.push(`\u26fd Tank: ${kept.length}/${tankSize} slots \u2014 oldest ${overflow} card${overflow > 1 ? 's' : ''} dropped`);
   return kept;
 }
@@ -157,13 +157,13 @@ function detectPokerHand(heldCards) {
       })()
     : counts;
 
-  if (isStraightFlush) return { name: 'Straight Flush', emoji: '\U0001f31f', bonus: 400000, jokerAssisted: jokerCount > 0 };
-  if (allCounts[0] >= 4) return { name: 'Four of a Kind', emoji: '\U0001f4ab', bonus: 200000 };
-  if (allCounts[0] >= 3 && allCounts[1] >= 2) return { name: 'Full House', emoji: '\U0001f3e0', bonus: 120000 };
+  if (isStraightFlush) return { name: 'Straight Flush', emoji: '\🌟', bonus: 400000, jokerAssisted: jokerCount > 0 };
+  if (allCounts[0] >= 4) return { name: 'Four of a Kind', emoji: '\💫', bonus: 200000 };
+  if (allCounts[0] >= 3 && allCounts[1] >= 2) return { name: 'Full House', emoji: '\🏠', bonus: 120000 };
   if (isFlush) return { name: 'Flush', emoji: '\u267b\ufe0f', bonus: 200000, jokerAssisted: jokerCount > 0 };
-  if (isStraight) return { name: 'Straight', emoji: '\U0001f4c8', bonus: 150000, jokerAssisted: jokerCount > 0 };
-  if (allCounts[0] >= 3) return { name: 'Three of a Kind', emoji: '\U0001f3af', bonus: 80000 };
-  if (allCounts[0] >= 2 && allCounts[1] >= 2) return { name: 'Two Pair', emoji: '\U0001f46f', bonus: 40000 };
+  if (isStraight) return { name: 'Straight', emoji: '\📈', bonus: 150000, jokerAssisted: jokerCount > 0 };
+  if (allCounts[0] >= 3) return { name: 'Three of a Kind', emoji: '\🎯', bonus: 80000 };
+  if (allCounts[0] >= 2 && allCounts[1] >= 2) return { name: 'Two Pair', emoji: '\👯', bonus: 40000 };
   if (allCounts[0] >= 2) return { name: 'One Pair', emoji: '\u270c\ufe0f', bonus: 10000 };
   return null;
 }
@@ -188,7 +188,7 @@ function calculateLaunch(heldCards, burnedCards, rng) {
   const gs = buildGameStateContext(heldCards, burnedCards, rng);
   const fullLog = [];
 
-  fullLog.push('\U0001f527 ENGINE CHECK...');
+  fullLog.push('\🔧 ENGINE CHECK...');
 
   const tankSize = getTankSize(heldCards);
   fullLog.push(`\u26fd Fuel tank capacity: ${tankSize} slots`);
@@ -210,7 +210,7 @@ function calculateLaunch(heldCards, burnedCards, rng) {
 
   let altitude = fuel + pokerBonus + flatBonus;
   const totalFlat = pokerBonus + flatBonus;
-  if (totalFlat > 0) fullLog.push(`\U0001f680 Flat bonuses: +${totalFlat.toLocaleString()} ft \u2192 ${altitude.toLocaleString()} ft`);
+  if (totalFlat > 0) fullLog.push(`\🚀 Flat bonuses: +${totalFlat.toLocaleString()} ft \u2192 ${altitude.toLocaleString()} ft`);
 
   for (const mult of multipliers) {
     altitude = Math.round(altitude * mult);
@@ -220,7 +220,7 @@ function calculateLaunch(heldCards, burnedCards, rng) {
   altitude = Math.max(0, altitude);
 
   const tier = getTier(altitude);
-  fullLog.push(`\U0001f3af FINAL ALTITUDE: ${altitude.toLocaleString()} ft`);
+  fullLog.push(`\🎯 FINAL ALTITUDE: ${altitude.toLocaleString()} ft`);
   fullLog.push(`${tier.emoji} ${tier.name.toUpperCase()}`);
 
   return { altitude, tier, log: fullLog };
