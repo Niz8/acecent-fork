@@ -77,8 +77,8 @@
             <div class="result-altitude">${result.altitude.toLocaleString()} ft</div>
             <div class="result-pilot">👤 ${result.playerName}</div>
           </div>
-          <div class="launch-log" id="replay-log"></div>
-          <div class="result-actions" style="margin-top:1rem;">
+          <div class="launch-log" id="replay-log" style="flex:1;overflow-y:auto;"></div>
+          <div style="padding-top:1rem;flex-shrink:0;">
             <button id="skip-replay-btn" class="btn-secondary">Skip ⏩</button>
           </div>
         </div>
